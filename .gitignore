@@ -1,1 +1,3 @@
 *.db
+pkg
+src/github.com
