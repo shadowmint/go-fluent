@@ -9,9 +9,8 @@ See the fluent/drivers/tests folder for test examples.
 Example code
 --
 
-    import ns "fluent"
+    import "fluent"
     import "time"
-    import "testing"
 
       var r1 = map[string]interface{} {
         "string_value" : "value",
@@ -22,7 +21,7 @@ Example code
         "datetime_value" : time.Now(),
       }
       
-      var insert_query = ns.New.Query(ns.INSERT, "TargetTable")
+      var insert_query = fluent.New.Query(fluent.INSERT, "TargetTable")
       for i := 0; i < 15; i++ {
         var row = map[string]interface{} {}
         for k, v := range r1 {
@@ -33,7 +32,7 @@ Example code
       
       var _, err = i.Execute(insert_query)
       
-      var select_query = ns.New.Query(ns.SELECT, runner.Table()). 
+      var select_query = fluent.New.Query(fluent.SELECT, runner.Table()). 
         Select("int_value").
         Select("string_value").
         Where("int_value > ? AND int_value < ?", 0, 5).
