@@ -2,6 +2,7 @@ package pq
 
 import "fluent/drivers/utils"
 import "fmt"
+import "strings"
 
 /*============================================================================*
  * {{{ Internal api
@@ -26,7 +27,8 @@ func (self *sqlFactory) Select(stmt *sqlFactorySelect) (string, []interface{}) {
   if stmt.Limit >= 0 { limits.S(" LIMIT %d", stmt.Limit) }
   
   var rtn = utils.New.Str()
-  rtn.S("SELECT %s FROM %s WHERE %s%s", cols, stmt.Table, stmt.Where, limits.String())
+  var whr = self.adjustWhere(stmt.Where)
+  rtn.S("SELECT %s FROM %s WHERE %s%s", cols, stmt.Table, whr, limits.String())
   
 	return rtn.String(), stmt.Values
 }
@@ -74,6 +76,21 @@ func (self *sqlFactory) Columns(columns []string) string {
     }
   }
   return cols.String()
+}
+
+// Postgres does not support the ? syntax, only :1, :2, etc.
+// Correct this so that each ? is replaced by a :N. This is a safe
+// operation because the '?' symbol is NEVER valid in the where clause
+// other than as a prepared statement element.
+func (self *sqlFactory) adjustWhere(whr string) string {
+  var root = 1
+  var rtn = whr
+  for strings.Contains(rtn, "?") {
+    var marker = fmt.Sprintf("$%d", root)
+    rtn = strings.Replace(rtn, "?", marker, 1)
+    root = root + 1
+  }
+  return rtn
 }
 
 /*============================================================================*
